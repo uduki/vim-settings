@@ -164,8 +164,23 @@ let g:neocomplcache_enable_at_startup = 1
 "#----------------------------------------#
 autocmd FileType haskell compiler hlint
 
-nmap <C-@><C-g> :compiler ghcmod_check<LF>:w<LF>
-nmap <C-@><C-l> :compiler hlint<LF>:w<LF>
-nmap <C-@><C-t> :GhcModType<LF>
-nmap <C-@><C-r> :GhcModTypeClear<LF>
+nmap +HC :compiler ghcmod_check<LF>:w<LF>
+nmap +HL :compiler hlint<LF>:w<LF>
+nmap +HT :GhcModType<LF>
+nmap +HR :GhcModTypeClear<LF>
 
+
+"#----------------------------------------#
+"#              Unite用設定               #
+"#----------------------------------------#
+"各変数設定
+let g:unite_update_time = 100
+let g:unite_enable_split_vertically = 1
+let g:unite_winwidth = 35
+let g:unite_enable_start_insert = 1
+
+"エクスプローラ表示
+nmap +UP :Unite -buffer-name=project -input=!cabal-dev\ !dist file_rec<LF>
+
+"バッファ表示
+nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
