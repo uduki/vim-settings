@@ -163,3 +163,9 @@ let g:neocomplcache_enable_at_startup = 1
 "#             Haskell用設定              #
 "#----------------------------------------#
 autocmd FileType haskell compiler hlint
+
+nmap <C-@><C-g> :compiler ghcmod_check<LF>:w<LF>
+nmap <C-@><C-l> :compiler hlint<LF>:w<LF>
+nmap <C-@><C-t> :GhcModType<LF>
+nmap <C-@><C-r> :GhcModTypeClear<LF>
+

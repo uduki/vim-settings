@@ -19,6 +19,7 @@ function! s:source.initialize() "{{{
   let s:modules_cache = {}
   call s:ghc_mod_caching_list()
   call s:ghc_mod_caching_lang()
+  call s:ghc_mod_caching_flag()
   call s:ghc_mod_caching_browse('Prelude')
 
   augroup neocomplcache
@@ -52,8 +53,11 @@ function! s:source.get_keyword_pos(cur_text)  "{{{
     return parp > 0 ? parp :
           \ matchend(a:cur_text, '^import\s\+\(qualified\s\+\)\?')
   else
-    " let l:pattern = neocomplcache#get_keyword_pattern_end('haskell')
-    let l:pattern = "\\%([[:alpha:]_'][[:alnum:]_'.]*\\m\\)$"
+    if s:synname() =~# 'Pragma' && a:cur_text =~# 'OPTIONS_GHC'
+      let l:pattern = '-[[:alnum:]-]*$'
+    else
+      let l:pattern = "\\%([[:alpha:]_'][[:alnum:]_'.]*\\m\\)$"
+    endif
     let [l:cur_keyword_pos, l:cur_keyword_str] = neocomplcache#match_word(a:cur_text, l:pattern)
     return l:cur_keyword_pos
   endif
@@ -96,6 +100,10 @@ function! s:source.get_complete_words(cur_keyword_pos, cur_keyword_str) "{{{
         call add(l:list, { 'word': l:lang, 'menu': '[ghc] ' . l:lang })
         call add(l:list, { 'word': 'No' . l:lang, 'menu': '[ghc] No' . l:lang })
       endfor
+    elseif l:line =~# 'OPTIONS_GHC'
+      for l:flag in s:flag_cache
+        call add(l:list, { 'word': l:flag, 'menu': '[ghc] ' . l:flag })
+      endfor
     endif
   elseif a:cur_keyword_str =~# '\.'
     " qualified
@@ -130,8 +138,8 @@ function! neocomplcache#sources#ghc#define() "{{{
     return {}
   endif
   let l:version = s:ghc_mod_version()
-  if l:version < '0.5.3'
-    call neocomplcache#print_warning("neco-ghc requires ghc-mod 0.5.3+")
+  if l:version < '1.0.8'
+    call neocomplcache#print_warning("neco-ghc requires ghc-mod 1.0.8+")
     call neocomplcache#print_warning("detected version: " . l:version)
     return {}
   endif
@@ -143,11 +151,11 @@ endfunction "}}}
 "                    ,
 " returns Maybe pos
 function! s:multiline_import(cur_text, type)
-  if a:cur_text =~# '^\s\+,'
+  if a:cur_text =~# '^\s\+[,(]'
     let mod = s:dangling_import(getpos('.')[1])
     if mod != ''
       if a:type == 'pos'
-        return [0, matchend(a:cur_text, '^\s\+,')]
+        return [0, matchend(a:cur_text, '^\s\+[,(]\s*')]
       else " 'list'
         let l:list = []
         for l:func in s:ghc_mod_browse(l:mod)
@@ -177,6 +185,10 @@ endfunction "}}}
 
 function! s:ghc_mod_caching_lang()  "{{{
   let s:lang_cache = s:ghc_mod('lang')
+endfunction "}}}
+
+function! s:ghc_mod_caching_flag()  "{{{
+  let s:flag_cache = s:ghc_mod('flag')
 endfunction "}}}
 
 function! s:caching_modules() "{{{
@@ -278,8 +290,8 @@ function! s:dangling_import(n)
 endfunction
 
 function! s:ghc_mod_version()
-  call vimproc#system('ghc-mod')
-  return matchlist(vimproc#get_last_errmsg(), 'ghc-mod version \(.....\)')[1]
+  let l:ret = neocomplcache#system('ghc-mod')
+  return get(matchlist(ret, 'ghc-mod version \(.....\)'), 1)
 endfunction
 
 function! s:synname(...)

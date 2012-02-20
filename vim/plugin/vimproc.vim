@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: vimproc.vim
 " AUTHOR: Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 19 Sep 2011.
+" Last Modified: 01 Feb 2012.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -24,7 +24,7 @@
 " }}}
 "=============================================================================
 
-if v:version < 700
+if v:version < 702
   echoerr 'vimproc does not work this version of Vim "' . v:version . '".'
   finish
 elseif exists('g:loaded_vimproc')
@@ -36,22 +36,18 @@ let s:save_cpo = &cpo
 set cpo&vim
 " }}}
 
-if !exists('g:vimproc_shell_commands')
-  let g:vimproc_shell_commands = {
-        \ 'sh' : 1, 'bash' : 1, 'zsh' : 1, 'csh' : 1, 'tcsh' : 1,
-        \ 'tmux' : 1, 'screen' : 1,
-        \ 'python' : 1,
-        \ }
-endif
-if !exists('g:stdinencoding')
-  let g:stdinencoding = &termencoding
-endif
-if !exists('g:stdoutencoding')
-  let g:stdoutencoding = &termencoding
-endif
-if !exists('g:stderrencoding')
-  let g:stderrencoding = &termencoding
-endif
+let g:vimproc_popen2_commands =
+      \ get(g:, 'vimproc_popen2_commands', {
+      \     'sh' : 1, 'bash' : 1, 'zsh' : 1, 'csh' : 1, 'tcsh' : 1,
+      \     'tmux' : 1, 'screen' : 1, 'su' : 1,
+      \     'python' : 1, 'rhino' : 1, 'ipython' : 1, 'yaourt' : 1,
+      \ })
+let g:stdinencoding =
+      \ get(g:, 'stdinencoding', &termencoding)
+let g:stdoutencoding =
+      \ get(g:, 'stdoutencoding', &termencoding)
+let g:stderrencoding =
+      \ get(g:, 'stderrencoding', &termencoding)
 
 command! -nargs=+ -complete=shellcmd VimProcBang call s:bang(<q-args>)
 command! -nargs=+ -complete=shellcmd VimProcRead call s:read(<q-args>)
@@ -70,7 +66,7 @@ function! s:bang(cmdline)"{{{
 
   while !subproc.stdout.eof || !subproc.stderr.eof
     if !subproc.stdout.eof
-      let output = subproc.stdout.read(-1, 40)
+      let output = subproc.stdout.read(10000, 0)
       if output != ''
         let output = vimproc#util#iconv(output, vimproc#util#stdoutencoding(), &encoding)
 
@@ -80,7 +76,7 @@ function! s:bang(cmdline)"{{{
     endif
 
     if !subproc.stderr.eof
-      let output = subproc.stderr.read(-1, 40)
+      let output = subproc.stderr.read(10000, 0)
       if output != ''
         let output = vimproc#util#iconv(output, vimproc#util#stderrencoding(), &encoding)
         echohl WarningMsg | echon output | echohl None

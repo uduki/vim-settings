@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: omni_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 21 Sep 2011.
+" Last Modified: 12 Feb 2012.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -37,38 +37,49 @@ function! s:source.initialize()"{{{
   if !exists('g:neocomplcache_omni_patterns')
     let g:neocomplcache_omni_patterns = {}
   endif
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'html,xhtml,xml,markdown',
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        \'html,xhtml,xml,markdown',
         \'<[^>]*')
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'css',
-        \'^\s\+\w+\|\w+[):;]?\s\+\|[@!]')
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'javascript',
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        \'css',
+        \'^\s\+\w\+\|\w\+[):;]\?\s\+\|[@!]')
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        \'javascript',
         \'[^. \t]\.\%(\h\w*\)\?')
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'actionscript',
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        \'actionscript',
         \'[^. \t][.:]\h\w*')
-  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'php',
+  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        "\'php',
         "\'[^. \t]->\h\w*\|\h\w*::')
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'java',
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        \'java',
         \'\%(\h\w*\|)\)\.')
-  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'perl',
-  "\'\h\w*->\h\w*\|\h\w*::')
-  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'c',
+  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        "\'perl',
+        "\'\h\w*->\h\w*\|\h\w*::')
+  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        "\'c',
         "\'\%(\.\|->\)\h\w*')
-  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'cpp',
+  "call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        "\'cpp',
         "\'\h\w*\%(\.\|->\)\h\w*\|\h\w*::')
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'vimshell',
-        \'\%(\\[^[:alnum:].-]\|[[:alnum:]@/.-_+,#$%~=*]\)\{2,}')
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'objc',
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        \'objc',
         \'\h\w\+\|\h\w*\%(\.\|->\)\h\w*')
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'objj',
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+        \'objj',
         \'[\[ \.]\w\+$\|:\w*$')
 
   " External language interface check.
   if has('ruby')
-    " call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'ruby',
-    "       \'[^. *\t]\.\h\w*\|\h\w*::')
+    " call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+          "\'ruby',
+          "\'[^. *\t]\.\h\w*\|\h\w*::')
   endif
   if has('python')
-    call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns, 'python',
+    call neocomplcache#set_dictionary_helper(g:neocomplcache_omni_patterns,
+          \'python',
           \'[^. \t]\.\w*')
   endif
   "}}}
@@ -80,7 +91,8 @@ function! s:source.initialize()"{{{
   "}}}
 
   " Set rank.
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_plugin_rank, 'omni_complete', 100)
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_source_rank,
+        \ 'omni_complete', 300)
 endfunction"}}}
 function! s:source.finalize()"{{{
 endfunction"}}}
@@ -126,7 +138,7 @@ function! s:source.get_keyword_pos(cur_text)"{{{
     let cur_text = a:cur_text
   endif
 
-  if !neocomplcache#is_eskk_enabled()
+  if !neocomplcache#is_eskk_enabled() && neocomplcache#is_auto_complete()
         \ && cur_text !~ '\%(' . pattern . '\m\)$'
     return -1
   endif
@@ -143,6 +155,9 @@ function! s:source.get_keyword_pos(cur_text)"{{{
   try
     let cur_keyword_pos = call(omnifunc, [1, ''])
   catch
+    call neocomplcache#print_error(
+          \ 'Error occured calling omnifunction: ' . omnifunc)
+    call neocomplcache#print_error(v:throwpoint)
     call neocomplcache#print_error(v:exception)
     let cur_keyword_pos = -1
   endtry
@@ -199,6 +214,9 @@ function! s:source.get_complete_words(cur_keyword_pos, cur_keyword_str)"{{{
           \ [0, omnifunc ==# 'rubycomplete#Complete' ?
           \ '' : cur_keyword_str])
   catch
+    call neocomplcache#print_error(
+          \ 'Error occured calling omnifunction: ' . omnifunc)
+    call neocomplcache#print_error(v:throwpoint)
     call neocomplcache#print_error(v:exception)
     let list = []
   endtry
@@ -248,6 +266,10 @@ function! s:get_omni_list(list)"{{{
 
     if has_key(omni, 'menu')
       let dict.menu .= ' ' . omni.menu
+    endif
+
+    if has_key(omni, 'info')
+      let dict.info = omni.info
     endif
 
     call add(omni_list, dict)

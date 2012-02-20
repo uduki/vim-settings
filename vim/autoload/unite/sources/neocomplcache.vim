@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: neocomplcache.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 19 Sep 2011.
+" Last Modified: 02 Feb 2012.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -30,7 +30,6 @@ set cpo&vim
 function! unite#sources#neocomplcache#define() "{{{
   if !exists('*unite#version') || unite#version() < 150
     echoerr 'Your unite.vim is too old.'
-    echoerr 'Please install unite.vim Ver.1.5 or above.'
     return []
   endif
 
@@ -57,7 +56,7 @@ function! s:neocomplcache_source.hooks.on_init(args, context) "{{{
   let g:neocomplcache_max_keyword_width = -1
 
   let cur_text = neocomplcache#get_cur_text(1)
-  let complete_results = neocomplcache#get_complete_results_pos(
+  let complete_results = neocomplcache#get_complete_results(
         \ cur_text)
   let a:context.source__cur_keyword_pos =
         \ neocomplcache#get_cur_keyword_pos(complete_results)
@@ -102,23 +101,33 @@ function! s:neocomplcache_source.gather_candidates(args, context) "{{{
 endfunction "}}}
 
 function! unite#sources#neocomplcache#start_complete() "{{{
+  return s:start_complete(0)
+endfunction "}}}
+
+function! unite#sources#neocomplcache#start_quick_match() "{{{
+  return s:start_complete(1)
+endfunction "}}}
+
+function! s:start_complete(is_quick_match)
   if !neocomplcache#is_enabled()
     return ''
   endif
   if !exists(':Unite')
     echoerr 'unite.vim is not installed.'
-    echoerr 'Please install unite.vim Ver.1.5 or above.'
     return ''
   elseif unite#version() < 300
     echoerr 'Your unite.vim is too old.'
-    echoerr 'Please install unite.vim Ver.3.0 or above.'
     return ''
   endif
 
+  let winheight =
+        \ (&pumheight != 0) ? &pumheight : (winheight(0) - winline())
+
   return unite#start_complete(['neocomplcache'], {
-        \ 'auto_preview' : 1,
+        \ 'auto_preview' : 1, 'winheight' : winheight,
+        \ 'auto_resize' : 1, 'quick_match' : a:is_quick_match,
         \ })
-endfunction "}}}
+endfunction
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

@@ -1,7 +1,7 @@
 "=============================================================================
 " FILE: include_complete.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" Last Modified: 19 Sep 2011.
+" Last Modified: 05 Feb 2012.
 " License: MIT license  {{{
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -38,32 +38,54 @@ function! s:source.initialize()"{{{
   " Initialize
   let s:include_info = {}
   let s:include_cache = {}
+  let s:cache_accessed_time = {}
   let s:async_include_cache = {}
   let s:cached_pattern = {}
   let s:completion_length = neocomplcache#get_auto_completion_length('include_complete')
 
   " Set rank.
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_plugin_rank, 'include_complete', 8)
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_source_rank, 'include_complete', 8)
 
   if neocomplcache#has_vimproc()
     augroup neocomplcache
       " Caching events
       autocmd BufWritePost * call s:check_buffer('', 0)
+      autocmd CursorHold * call s:check_cache()
     augroup END
   endif
 
   " Initialize include pattern."{{{
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_patterns, 'java,haskell', '^import')
+  let g:neocomplcache_include_patterns =
+        \ get(g:, 'neocomplcache_include_patterns', {})
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_patterns,
+        \ 'java,haskell', '^import')
   "}}}
   " Initialize expr pattern."{{{
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_exprs, 'haskell',
-        \'substitute(v:fname,''\\.'',''/'',''g'')')
+  let g:neocomplcache_include_exprs =
+        \ get(g:, 'neocomplcache_include_exprs', {})
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_exprs,
+        \ 'haskell',
+        \ 'substitute(v:fname,''\\.'',''/'',''g'')')
   "}}}
   " Initialize path pattern."{{{
+  let g:neocomplcache_include_paths =
+        \ get(g:, 'neocomplcache_include_paths', {})
   "}}}
-  " Initialize suffixes pattern."{{{
-  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_suffixes, 'haskell', '.hs')
+  " Initialize include suffixes."{{{
+  let g:neocomplcache_include_suffixes =
+        \ get(g:, 'neocomplcache_include_suffixes', {})
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_suffixes,
+        \ 'haskell', '.hs')
   "}}}
+  " Initialize include functions."{{{
+  let g:neocomplcache_include_functions =
+        \ get(g:, 'neocomplcache_include_functions', {})
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_functions,
+        \ 'vim', 'neocomplcache#sources#include_complete#analyze_vim_include_files')
+  call neocomplcache#set_dictionary_helper(g:neocomplcache_include_functions,
+        \ 'ruby', 'neocomplcache#sources#include_complete#analyze_ruby_include_files')
+  "}}}
+
   if !exists('g:neocomplcache_include_max_processes')
     let g:neocomplcache_include_max_processes = 20
   endif
@@ -74,7 +96,8 @@ function! s:source.initialize()"{{{
   endif
 
   " Add command.
-  command! -nargs=? -complete=buffer NeoComplCacheCachingInclude call s:caching_include(<q-args>)
+  command! -nargs=? -complete=buffer NeoComplCacheCachingInclude
+        \ call s:caching_include(<q-args>)
 
   if neocomplcache#exists_echodoc()
     call echodoc#register('include_complete', s:doc_dict)
@@ -107,6 +130,7 @@ function! s:source.get_keyword_list(cur_keyword_str)"{{{
           \ 'include_cache', include, s:async_include_cache,
           \ s:include_cache, s:completion_length)
     if has_key(s:include_cache, include)
+      let s:cache_accessed_time[include] = localtime()
       let keyword_list += neocomplcache#dictionary_filter(
             \ s:include_cache[include], a:cur_keyword_str, s:completion_length)
     endif
@@ -121,10 +145,20 @@ endfunction"}}}
 
 function! neocomplcache#sources#include_complete#get_include_files(bufnumber)"{{{
   if has_key(s:include_info, a:bufnumber)
-    return s:include_info[a:bufnumber].include_files
+    return copy(s:include_info[a:bufnumber].include_files)
   else
     return []
   endif
+endfunction"}}}
+
+function! neocomplcache#sources#include_complete#get_include_tags(bufnumber)"{{{
+  return filter(map(neocomplcache#sources#include_complete#get_include_files(a:bufnumber),
+        \ "neocomplcache#cache#encode_name('tags_output', v:val)"), 'filereadable(v:val)')
+endfunction"}}}
+
+" For Debug.
+function! neocomplcache#sources#include_complete#get_current_include_files()"{{{
+  return s:get_buffer_include_files(bufnr('%'))
 endfunction"}}}
 
 " For echodoc."{{{
@@ -197,18 +231,27 @@ function! s:check_buffer(bufnumber, is_force)"{{{
 
   let include_info = s:include_info[bufnumber]
 
-  if include_info.lines !=# getbufline(bufnumber, 1, 100)
+  if a:is_force || include_info.lines !=# getbufline(bufnumber, 1, 100)
     let include_info.lines = getbufline(bufnumber, 1, 100)
 
     " Check include files contained bufname.
-    let include_files =
-          \ neocomplcache#util#uniq(s:get_buffer_include_files(bufnumber))
+    let include_files = s:get_buffer_include_files(bufnumber)
+
+    " Check include files from function.
+    let filetype = getbufvar(a:bufnumber, '&filetype')
+    let function = get(g:neocomplcache_include_functions, filetype, '')
+    if function != '' && getbufvar(bufnumber, '&buftype') !~ 'nofile'
+      let path = get(g:neocomplcache_include_paths, filetype,
+            \ getbufvar(a:bufnumber, '&path'))
+      let include_files += call(function,
+            \ [getbufline(bufnumber, 1, (a:is_force ? '$' : 1000)), path])
+    endif
 
     if getbufvar(bufnumber, '&buftype') !~ 'nofile'
           \ && filereadable(filename)
       call add(include_files, filename)
     endif
-    let include_info.include_files = include_files
+    let include_info.include_files = neocomplcache#util#uniq(include_files)
   endif
 
   if g:neocomplcache_include_max_processes <= 0
@@ -247,35 +290,42 @@ function! s:get_buffer_include_files(bufnumber)"{{{
         \ && executable('python')
     " Initialize python path pattern.
     call neocomplcache#set_dictionary_helper(g:neocomplcache_include_paths, 'python',
-          \ neocomplcache#system('python -', 'import sys;sys.stdout.write(",".join(sys.path))'))
+          \ neocomplcache#system('python -',
+          \ 'import sys;sys.stdout.write(",".join(sys.path))'))
   elseif filetype == 'cpp' && isdirectory('/usr/include/c++')
     " Add cpp path.
     call neocomplcache#set_dictionary_helper(g:neocomplcache_include_paths, 'cpp',
-          \ getbufvar(a:bufnumber, '&path') . ',/usr/include/c++/*')
+          \ getbufvar(a:bufnumber, '&path') .
+          \ ','.join(split(glob('/usr/include/c++/*'), '\n'), ','))
   endif
 
-  let pattern = has_key(g:neocomplcache_include_patterns, filetype) ?
-        \ g:neocomplcache_include_patterns[filetype] : getbufvar(a:bufnumber, '&include')
-  if pattern == ''
+  let pattern = get(g:neocomplcache_include_patterns, filetype,
+        \ getbufvar(a:bufnumber, '&include'))
+  if pattern == '' ||
+        \ (filetype != 'c' && filetype != 'cpp' && pattern ==# '^\s*#\s*include')
     return []
   endif
-  let path = has_key(g:neocomplcache_include_paths, filetype) ?
-        \ g:neocomplcache_include_paths[filetype] : getbufvar(a:bufnumber, '&path')
-  let expr = has_key(g:neocomplcache_include_exprs, filetype) ?
-        \ g:neocomplcache_include_exprs[filetype] : getbufvar(a:bufnumber, '&includeexpr')
+  let path = get(g:neocomplcache_include_paths, filetype,
+        \ getbufvar(a:bufnumber, '&path'))
+  let expr = get(g:neocomplcache_include_exprs, filetype,
+        \ getbufvar(a:bufnumber, '&includeexpr'))
   if has_key(g:neocomplcache_include_suffixes, filetype)
     let suffixes = &l:suffixesadd
   endif
 
   " Change current directory.
   let cwd_save = getcwd()
-  if isdirectory(fnamemodify(bufname(a:bufnumber), ':p:h'))
-    lcd `=fnamemodify(bufname(a:bufnumber), ':p:h')`
+  let buffer_dir = fnamemodify(bufname(a:bufnumber), ':p:h')
+  if isdirectory(buffer_dir)
+    lcd `=buffer_dir`
   endif
 
-  let include_files = s:get_include_files(0, getbufline(a:bufnumber, 1, 100), filetype, pattern, path, expr)
+  let include_files = s:get_include_files(0,
+        \ getbufline(a:bufnumber, 1, 100), filetype, pattern, path, expr)
 
-  lcd `=cwd_save`
+  if isdirectory(buffer_dir)
+    lcd `=cwd_save`
+  endif
 
   " Restore option.
   if has_key(g:neocomplcache_include_suffixes, filetype)
@@ -290,16 +340,19 @@ function! s:get_include_files(nestlevel, lines, filetype, pattern, path, expr)"{
     if line =~ a:pattern
       let match_end = matchend(line, a:pattern)
       if a:expr != ''
-        let eval = substitute(a:expr, 'v:fname', string(matchstr(line[match_end :], '\f\+')), 'g')
+        let eval = substitute(a:expr, 'v:fname',
+              \ string(matchstr(line[match_end :], '\f\+')), 'g')
         let filename = fnamemodify(findfile(eval(eval), a:path), ':p')
       else
-        let filename = fnamemodify(findfile(matchstr(line[match_end :], '\f\+'), a:path), ':p')
+        let filename = fnamemodify(findfile(
+              \ matchstr(line[match_end :], '\f\+'), a:path), ':p')
       endif
-      if filereadable(filename) && getfsize(filename) < g:neocomplcache_caching_limit_file_size
+      if filereadable(filename)
         call add(include_files, filename)
 
         if (a:filetype == 'c' || a:filetype == 'cpp') && a:nestlevel < 1
-          let include_files += s:get_include_files(a:nestlevel + 1, readfile(filename)[:100],
+          let include_files += s:get_include_files(
+                \ a:nestlevel + 1, readfile(filename)[:100],
                 \ a:filetype, a:pattern, a:path, a:expr)
         endif
       endif
@@ -307,6 +360,17 @@ function! s:get_include_files(nestlevel, lines, filetype, pattern, path, expr)"{
   endfor"}}}
 
   return include_files
+endfunction"}}}
+
+function! s:check_cache()"{{{
+  let release_accessd_time = localtime() - g:neocomplcache_release_cache_time
+
+  for key in keys(s:include_cache)
+    if has_key(s:cache_accessed_time, key)
+          \ && s:cache_accessed_time[key] < release_accessd_time
+      call remove(s:include_cache, key)
+    endif
+  endfor
 endfunction"}}}
 
 function! s:initialize_include(filename, filetype)"{{{
@@ -333,20 +397,53 @@ function! s:caching_include(bufname)"{{{
   call s:check_buffer(bufnumber, 1)
 endfunction"}}}
 
-" Global options definition."{{{
-if !exists('g:neocomplcache_include_patterns')
-  let g:neocomplcache_include_patterns = {}
-endif
-if !exists('g:neocomplcache_include_exprs')
-  let g:neocomplcache_include_exprs = {}
-endif
-if !exists('g:neocomplcache_include_paths')
-  let g:neocomplcache_include_paths = {}
-endif
-if !exists('g:neocomplcache_include_suffixes')
-  let g:neocomplcache_include_suffixes = {}
-endif
-"}}}
+" Analyze include files functions.
+function! neocomplcache#sources#include_complete#analyze_vim_include_files(lines, path)"{{{
+  let include_files = []
+  let dup_check = {}
+  for line in a:lines
+    if line =~ '\<\h\w*#' && line !~ '\<function!\?\>'
+      let filename = 'autoload/' . substitute(matchstr(line, '\<\%(\h\w*#\)*\h\w*\ze#'),
+            \ '#', '/', 'g') . '.vim'
+      if filename == '' || has_key(dup_check, filename)
+        continue
+      endif
+      let dup_check[filename] = 1
+
+      let filename = fnamemodify(findfile(filename, &runtimepath), ':p')
+      if filereadable(filename)
+        call add(include_files, filename)
+      endif
+    endif
+  endfor
+
+  return include_files
+endfunction"}}}
+function! neocomplcache#sources#include_complete#analyze_ruby_include_files(lines, path)"{{{
+  let include_files = []
+  let dup_check = {}
+  for line in a:lines
+    if line =~ '\<autoload\>'
+      let args = split(line, ',')
+      if len(args) < 2
+        continue
+      endif
+      let filename = substitute(matchstr(args[1], '["'']\zs\f\+\ze["'']'),
+            \ '\.', '/', 'g') . '.rb'
+      if filename == '' || has_key(dup_check, filename)
+        continue
+      endif
+      let dup_check[filename] = 1
+
+      let filename = fnamemodify(findfile(filename, a:path), ':p')
+      if filereadable(filename)
+        call add(include_files, filename)
+      endif
+    endif
+  endfor
+
+  return include_files
+endfunction"}}}
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
