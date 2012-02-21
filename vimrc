@@ -135,42 +135,6 @@ imap <C-u> <Esc>
 let g:neocomplcache_enable_at_startup = 1
 
 "#----------------------------------------#
-"#               オムニ補完               #
-"#----------------------------------------#
-"autocmd filetype c,cpp set omnifunc=omni#cpp#complete#Main
-"C-Spaceでオムニ補完
-"imap <C-Space> <C-x><C-o>
-
-"C-F12でカレントプロジェクトのタグファイル生成
-"map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<LF>
-
-"tagsファイル指定
-"set tags+=~/.vim/tags/cpp
-"set tags+=~/.vim/tags/qt4
-
-"オムニ補完
-"let OmniCpp_NamespaceSearch = 1
-"let OmniCpp_GlobalScopeSearch = 1
-"let OmniCpp_ShowAccess = 1
-"let OmniCpp_MayCompleteDot = 1
-"let OmniCpp_MayCompleteArrow = 1
-"let OmniCpp_MayCompleteScope = 1
-"let OmniCpp_DefaultNamespaces = ["std", "_GLIBCXX_STD"]
-"au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
-
-
-"#----------------------------------------#
-"#             Haskell用設定              #
-"#----------------------------------------#
-autocmd FileType haskell compiler hlint
-
-nmap +HC :compiler ghcmod_check<LF>:w<LF>
-nmap +HL :compiler hlint<LF>:w<LF>
-nmap +HT :GhcModType<LF>
-nmap +HR :GhcModTypeClear<LF>
-
-
-"#----------------------------------------#
 "#              Unite用設定               #
 "#----------------------------------------#
 "各変数設定
@@ -184,3 +148,18 @@ nmap +UP :Unite -buffer-name=project -input=!cabal-dev\ !dist file_rec<LF>
 
 "バッファ表示
 nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
+
+"#----------------------------------------#
+"#             Haskell用設定              #
+"#----------------------------------------#
+autocmd FileType haskell compiler hlint
+
+nmap +HC :compiler ghcmod_check<LF>:w<LF>
+nmap +HL :compiler hlint<LF>:w<LF>
+nmap +HT :GhcModType<LF>
+nmap +HR :GhcModTypeClear<LF>
+
+"Unite-haddockをbrowse_remoteをデフォにして起動
+nmap +HH :Unite -default-action=browse_remote haddock<LF>
+
+
