@@ -143,7 +143,7 @@ let g:unite_enable_split_vertically = 1
 let g:unite_enable_start_insert = 1
 
 "エクスプローラ表示
-nmap +UP :Unite -buffer-name=project -input=!cabal-dev\ !dist file_rec<LF>
+nmap +UP :Unite -buffer-name=project -input=!cabal-dev\ !dist\  file_rec<LF>
 
 "バッファ表示
 nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
