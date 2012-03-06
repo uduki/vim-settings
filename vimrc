@@ -139,7 +139,7 @@ let g:neocomplcache_enable_at_startup = 1
 "#----------------------------------------#
 "各変数設定
 let g:unite_update_time = 100
-let g:unite_enable_split_vertically = 1
+"let g:unite_enable_split_vertically = 1
 let g:unite_enable_start_insert = 1
 
 "エクスプローラ表示
