@@ -159,6 +159,7 @@ nmap +HT :GhcModType<LF>
 nmap +HR :GhcModTypeClear<LF>
 
 "Unite-haddockをbrowse_remoteをデフォにして起動
-nmap +HH :Unite -default-action=browse_remote haddock<LF>
+nmap +HHR :Unite -default-action=browse_remote haddock<LF>
+nmap +HHL :Unite haddock<LF>
 
 
