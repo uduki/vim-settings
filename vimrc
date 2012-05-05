@@ -152,6 +152,7 @@ nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
 "#             Haskell用設定              #
 "#----------------------------------------#
 autocmd FileType haskell compiler hlint
+let g:hlint_onwrite = 0
 
 nmap +HC :compiler ghcmod_check<LF>:w<LF>
 nmap +HL :compiler hlint<LF>:w<LF>
