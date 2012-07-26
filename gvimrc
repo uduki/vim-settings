@@ -1,6 +1,6 @@
 
 set guifont=Ricty\ 11
-set showtabline=2
+set showtabline=1
 set guioptions-=m "メニューバーなし
 set guioptions-=T "ツールバーなし
 set guioptions-=r "右スクロールバーなし
