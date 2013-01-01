@@ -1,19 +1,49 @@
-" All system-wide defaults are set in $VIMRUNTIME/debian.vim (usually just
-" /usr/share/vim/vimcurrent/debian.vim) and sourced by the call to :runtime
-" you can find below.  If you wish to change any of those settings, you should
-" do it in this file (/etc/vim/vimrc), since debian.vim will be overwritten
-" everytime an upgrade of the vim packages is performed.  It is recommended to
-" make changes after sourcing debian.vim since it alters the value of the
-" 'compatible' option.
+"----------------------------------------"
+"           NeoBundle 前半処理           "
+"----------------------------------------"
 
-" This line should not be removed as it ensures that various options are
-" properly set to work with the Vim-related packages available in Debian.
-runtime! debian.vim
+set nocompatible               " Be iMproved
 
-" Uncomment the next line to make Vim more Vi-compatible
-" NOTE: debian.vim sets 'nocompatible'.  Setting 'compatible' changes numerous
-" options, so any other options should be set AFTER setting 'compatible'.
-"set compatible
+if has('vim_starting')
+  set runtimepath+=~/.vim/bundle/neobundle.vim/
+endif
+
+call neobundle#rc(expand('~/.vim/bundle/'))
+
+" Let NeoBundle manage NeoBundle
+NeoBundleFetch 'Shougo/neobundle.vim'
+
+" Recommended to install
+" After install, turn shell ~/.vim/bundle/vimproc, (n,g)make -f your_machines_makefile
+NeoBundle 'Shougo/vimproc'
+
+" My Bundles here:
+"
+" Note: You don't set neobundle setting in .gvimrc!
+" Original repos on github
+" NeoBundle 'tpope/vim-fugitive'
+" NeoBundle 'Lokaltog/vim-easymotion'
+" NeoBundle 'rstacruz/sparkup', {'rtp': 'vim/'}
+" vim-scripts repos
+" NeoBundle 'L9'
+" NeoBundle 'FuzzyFinder'
+" NeoBundle 'rails.vim'
+" Non github repos
+" NeoBundle 'git://git.wincent.com/command-t.git'
+" Non git repos
+" NeoBundle 'http://svn.macports.org/repository/macports/contrib/mpvim/'
+" NeoBundle 'https://bitbucket.org/ns9tks/vim-fuzzyfinder'
+
+NeoBundle 'Shougo/unite.vim'
+NeoBundle 'Shougo/neocomplcache'
+NeoBundle 'thinca/vim-ref'
+NeoBundle 'eagletmt/ghcmod-vim'
+NeoBundle 'altercation/vim-colors-solarized'
+
+
+"----------------------------------------"
+"                基本設定                "
+"----------------------------------------"
 
 " Vim5 and later versions support syntax highlighting. Uncommenting the next
 " line enables syntax highlighting by default.
@@ -22,20 +52,6 @@ syntax on
 " If using a dark background within the editing area and syntax highlighting
 " turn on this option as well
 set background=dark
-
-" Uncomment the following to have Vim jump to the last position when
-" reopening a file
-"if has("autocmd")
-"  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
-"    \| exe "normal! g'\"" | endif
-"endif
-
-" Uncomment the following to have Vim load indentation rules according to the
-" detected filetype. Per default Debian Vim only load filetype specific
-" plugins.
-"if has("autocmd")
-"  filetype indent on
-"endif
 
 " The following are commented out as they cause vim to behave a lot
 " differently from regular Vi. They are highly recommended though.
@@ -48,14 +64,6 @@ set incsearch		" Incremental search
 "set hidden             " Hide buffers when they are abandoned
 "set mouse=a		" Enable mouse usage (all modes) in terminals
 
-" Source a global configuration file if available
-" XXX Deprecated, please move your changes here in /etc/vim/vimrc
-if filereadable("/etc/vim/vimrc.local")
-  source /etc/vim/vimrc.local
-endif
-
-"autocmd FileType haskell compiler hlint
-
 " 256色モード
 "colorscheme desert
 let g:solarized_termcolors=16
@@ -64,9 +72,11 @@ let g:solarized_contrast="high"
 colorscheme solarized
 "set t_Co=256
 
+
 "#----------------------------------------#
 "#             文字コード設定             #
 "#----------------------------------------#
+
 set encoding=utf-8
 set fileencodings=ucs-bom,utf-8,iso-2022-jp-3,iso-2022-jp,eucjp-ms,euc-jisx0213,euc-jp,sjis,cp932
 set ambiwidth=double
@@ -151,11 +161,10 @@ nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
 "#----------------------------------------#
 "#             Haskell用設定              #
 "#----------------------------------------#
-autocmd FileType haskell compiler hlint
-let g:hlint_onwrite = 0
 
-nmap +HC :compiler ghcmod_check<LF>:w<LF>
-nmap +HL :compiler hlint<LF>:w<LF>
+nmap +HC :GhcModCheck<LF>
+nmap +HL :GhcModLint<LF>
+nmap +HE :GhcModExpand<LF>
 nmap +HT :GhcModType<LF>
 nmap +HR :GhcModTypeClear<LF>
 
@@ -164,3 +173,21 @@ nmap +HHR :Unite -default-action=browse_remote haddock<LF>
 nmap +HHL :Unite haddock<LF>
 
 
+"----------------------------------------"
+"           NeoBundle 後半処理           "
+"----------------------------------------"
+
+filetype plugin indent on     " Required!
+"
+" Brief help
+" :NeoBundleList          - list configured bundles
+" :NeoBundleInstall(!)    - install(update) bundles
+" :NeoBundleClean(!)      - confirm(or auto-approve) removal of unused bundles
+
+" Installation check.
+if neobundle#exists_not_installed_bundles()
+  echomsg 'Not installed bundles : ' .
+        \ string(neobundle#get_not_installed_bundle_names())
+  echomsg 'Please execute ":NeoBundleInstall" command.'
+  "finish
+endif
