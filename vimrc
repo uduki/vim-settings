@@ -39,6 +39,8 @@ NeoBundle 'Shougo/neocomplcache'
 NeoBundle 'thinca/vim-ref'
 NeoBundle 'eagletmt/ghcmod-vim'
 NeoBundle 'altercation/vim-colors-solarized'
+NeoBundle 'ujihisa/neco-ghc.git'
+NeoBundle 'uduki/commentout.vim'
 
 
 "----------------------------------------"
@@ -141,8 +143,19 @@ nnoremap k gk
 "誤って入力テキストを無効にしてしまうのを防止する。
 imap <C-u> <Esc>
 
-"neocomplcache設定
+"#----------------------------------------#
+"#           neocomplcache設定            #
+"#----------------------------------------#
+"起動時に有効
 let g:neocomplcache_enable_at_startup = 1
+
+"補完の為のキーワードパターンを設定
+if !exists('g:neocomplcache_keyword_patterns')
+    let g:neocomplcache_keyword_patterns = {}
+endif
+"日本語を補完候補として取得しないようにする
+let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
+
 
 "#----------------------------------------#
 "#              Unite用設定               #
