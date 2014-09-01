@@ -147,6 +147,14 @@ imap <C-f> <Esc>
 imap <C-u> <Esc>
 
 "#----------------------------------------#
+"#      ファイルを綺麗に保つ為の設定      #
+"#----------------------------------------#
+"保存時に行末の空白文字を自動削除する(Markdownは除く)
+if expand("%:t") !~ ".*\.md"
+    autocmd BufWritePre * :%s/\s\+$//e
+endif
+
+"#----------------------------------------#
 "#           neocomplcache設定            #
 "#----------------------------------------#
 "起動時に有効
@@ -177,6 +185,11 @@ nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
 "#----------------------------------------#
 "#             Haskell用設定              #
 "#----------------------------------------#
+
+let g:necoghc_enable_detailed_browse = 1
+
+"保存時に自動でチェック
+autocmd BufWritePost *.hs GhcModCheckAndLintAsync
 
 nmap +HC :GhcModCheck<LF>
 nmap +HL :GhcModLint<LF>
