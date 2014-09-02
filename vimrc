@@ -107,44 +107,75 @@ filetype plugin on
 "#           操作性向上用設定             #
 "#----------------------------------------#
 "入力モードを抜けずに保存を行う。
-imap <C-d><C-w> <Esc>:w<LF>a
+inoremap <C-d><C-w> <Esc>:w<LF>a
 
 "入力モードを抜けずに系設定。
 "C-hjklでカーソル移動
-imap <C-h> <LEFT>
-imap <C-j> <DOWN>
-imap <C-k> <UP>
-imap <C-l> <RIGHT>
+inoremap <C-h> <LEFT>
+inoremap <C-j> <DOWN>
+inoremap <C-k> <UP>
+inoremap <C-l> <RIGHT>
 "行頭・行末
-imap <C-a> <HOME>
-imap <C-e> <END>
+inoremap <C-a> <HOME>
+inoremap <C-e> <END>
 
 "バッファ切り替え
-nmap <UP> :bp<LF>
-nmap <DOWN> :bn<LF>
+nnoremap <UP> :bp<LF>
+nnoremap <DOWN> :bn<LF>
 
 "タブ切り替え
 nnoremap <RIGHT> gt
 nnoremap <LEFT> gT
 
 "ウィンドウサイズ変更
-nmap <C-h> 1<C-w><
-nmap <C-l> 1<C-w>>
-nmap <C-j> 1<C-w>-
-nmap <C-k> 1<C-w>+
+nnoremap <C-h> 1<C-w><
+nnoremap <C-l> 1<C-w>>
+nnoremap <C-j> 1<C-w>-
+nnoremap <C-k> 1<C-w>+
 
 "常に見た目の行数でカーソル移動
 nnoremap j gj
 nnoremap k gk
 
-"C-[じゃなくて押しやすいキーに変更
-imap <C-f> <Esc>
+"visualモードで選択してからのインデント調整で調整後に選択範囲を解除しない
+vnoremap > >gv
+vnoremap < <gv
+
+"ヤンクでクリップボードにコピー
+set clipboard+=unnamedplus,unnamed
+
+
+"#----------------------------------------#
+"#   ノーマルモードで日本語入力OFF設定    #
+"#----------------------------------------#
+let g:input_toggle = 1
+function! Fcitx2en()
+    let s:input_status = system("fcitx-remote")
+    if s:input_status == 2
+        let g:input_toggle = 1
+        let l:a = system("fcitx-remote -c")
+    endif
+endfunction
+
+function! Fcitx2ja()
+    let s:input_status = system("fcitx-remote")
+    if s:input_status != 2 && g:input_toggle == 1
+        let l:a = system("fcitx-remote -o")
+        let g:input_toggle = 0
+    endif
+endfunction
+
+set ttimeoutlen=150
+autocmd InsertLeave * call Fcitx2en()
+"autocmd InsertEnter * call Fcitx2ja()
+
 
 "#----------------------------------------#
 "#            誤操作防止用設定            #
 "#----------------------------------------#
 "誤って入力テキストを無効にしてしまうのを防止する。
 imap <C-u> <Esc>
+
 
 "#----------------------------------------#
 "#      ファイルを綺麗に保つ為の設定      #
@@ -153,6 +184,7 @@ imap <C-u> <Esc>
 if expand("%:t") !~ ".*\.md"
     autocmd BufWritePre * :%s/\s\+$//e
 endif
+
 
 "#----------------------------------------#
 "#           neocomplcache設定            #
