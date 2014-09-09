@@ -218,7 +218,7 @@ nmap +UP :Unite -buffer-name=project -input=!.git\ !.hg\ !cabal-dev\ !.cabal-san
 nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
 
 "grep結果表示
-nmap +UG :Unite -buffer-name=grep-list grep<LF>
+nmap +UG :Unite grep<LF>
 
 "#----------------------------------------#
 "#             Haskell用設定              #
