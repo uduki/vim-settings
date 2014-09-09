@@ -212,7 +212,7 @@ let g:unite_update_time = 100
 let g:unite_enable_start_insert = 1
 
 "エクスプローラ表示
-nmap +UP :Unite -buffer-name=project -input=!cabal-dev\ !.cabal-sandbox\ !dist\  file_rec<LF>
+nmap +UP :Unite -buffer-name=project -input=!.git\ !.hg\ !cabal-dev\ !.cabal-sandbox\ !dist\  file_rec<LF>
 
 "バッファ表示
 nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
