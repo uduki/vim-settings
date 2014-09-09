@@ -211,6 +211,10 @@ let g:unite_update_time = 100
 "let g:unite_enable_split_vertically = 1
 let g:unite_enable_start_insert = 1
 
+"大文字小文字を区別しない
+let g:unite_enable_ignore_case = 1
+let g:unite_enable_smart_case = 1
+
 "エクスプローラ表示
 nmap +UP :Unite -buffer-name=project -input=!.git\ !.hg\ !cabal-dev\ !.cabal-sandbox\ !dist\  file_rec/async<LF>
 
@@ -218,7 +222,15 @@ nmap +UP :Unite -buffer-name=project -input=!.git\ !.hg\ !cabal-dev\ !.cabal-san
 nmap +UB :Unite -buffer-name=buffer-list buffer<LF>
 
 "grep結果表示
-nmap +UG :Unite grep<LF>
+nmap +UG :Unite -buffer-name=grep-list grep<LF>
+nmap +URG :UniteResume grep-list<LF>
+
+"unite grepにthe silver searcherを使う
+if executable('ag')
+    let g:unite_source_grep_command = 'ag'
+    let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
+    let g:unite_source_grep_recursive_opt = ''
+endif
 
 "#----------------------------------------#
 "#             Haskell用設定              #
