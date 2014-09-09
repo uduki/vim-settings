@@ -146,7 +146,7 @@ set clipboard+=unnamedplus,unnamed
 
 "ビープ音がうるさいので消音
 set visualbell t_vb=
-
+nnoremap <C-t><C-v><C-b> :set visualbell t_vb=<LF>
 
 "#----------------------------------------#
 "#   ノーマルモードで日本語入力OFF設定    #
