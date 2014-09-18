@@ -36,11 +36,14 @@ NeoBundle 'Shougo/vimproc'
 
 NeoBundle 'Shougo/unite.vim'
 NeoBundle 'Shougo/neocomplcache'
+NeoBundle 'Shougo/neosnippet.vim'
+NeoBundle 'Shougo/neosnippet-snippets'
 NeoBundle 'thinca/vim-ref'
 NeoBundle 'eagletmt/ghcmod-vim'
 NeoBundle 'altercation/vim-colors-solarized'
 NeoBundle 'ujihisa/neco-ghc.git'
 NeoBundle 'uduki/commentout.vim'
+NeoBundle 'uduki/vim-snippets'
 
 
 "----------------------------------------"
@@ -201,6 +204,23 @@ if !exists('g:neocomplcache_keyword_patterns')
 endif
 "日本語を補完候補として取得しないようにする
 let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
+
+
+"#----------------------------------------#
+"#             neosnippet設定             #
+"#----------------------------------------#
+imap <C-i> <Plug>(neosnippet_expand_or_jump)
+smap <C-i> <Plug>(neosnippet_expand_or_jump)
+xmap <C-i> <Plug>(neosnippet_expand_target)
+
+imap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+smap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+if has('conceal')
+    set conceallevel=2 concealcursor=i
+endif
+
+let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
 
 
 "#----------------------------------------#
