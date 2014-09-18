@@ -1,5 +1,6 @@
 
-set guifont=Ricty\ 11
+set guifont=Source\ Code\ Pro\ 9
+set guifontwide=メイリオ\ 9
 set showtabline=1
 set guioptions-=m "メニューバーなし
 set guioptions-=T "ツールバーなし
