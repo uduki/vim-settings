@@ -40,10 +40,17 @@ NeoBundle 'Shougo/neosnippet.vim'
 NeoBundle 'Shougo/neosnippet-snippets'
 NeoBundle 'thinca/vim-ref'
 NeoBundle 'eagletmt/ghcmod-vim'
-NeoBundle 'altercation/vim-colors-solarized'
 NeoBundle 'ujihisa/neco-ghc.git'
 NeoBundle 'uduki/commentout.vim'
 NeoBundle 'uduki/vim-snippets'
+
+" for markdown
+NeoBundle 'plasticboy/vim-markdown'
+NeoBundle 'kannokanno/previm'
+NeoBundle 'tyru/open-browser.vim'
+
+" for theme
+NeoBundle 'altercation/vim-colors-solarized'
 
 
 "----------------------------------------"
@@ -71,11 +78,13 @@ set incsearch		" Incremental search
 
 " 256色モード
 "colorscheme desert
+"set t_Co=256
+
+""" solarized
 let g:solarized_termcolors=16
 let g:solarized_termtrans=1
 let g:solarized_contrast="high"
 colorscheme solarized
-"set t_Co=256
 
 
 "#----------------------------------------#
@@ -97,7 +106,7 @@ set expandtab
 set shiftwidth=4
 set showmatch
 set list
-set listchars=tab:>\ ,extends:@
+set listchars=tab:>\ ,extends:@,trail:_
 set completeopt=menu,preview,menuone,longest
 "set nowrap
 set wrap
@@ -187,9 +196,15 @@ imap <C-u> <Esc>
 "#      ファイルを綺麗に保つ為の設定      #
 "#----------------------------------------#
 "保存時に行末の空白文字を自動削除する(Markdownは除く)
-if expand("%:t") !~ ".*\.md"
-    autocmd BufWritePre * :%s/\s\+$//e
-endif
+let g:remove_trailing_white_space = 1
+
+function! RemoveTrailingWhiteSpace()
+    if g:remove_trailing_white_space == 1 && &filetype != 'mkd' && &filetype != 'markdown'
+        :%s/\s\+$//e
+    endif
+endfunction
+
+autocmd BufWritePre * call RemoveTrailingWhiteSpace()
 
 
 "#----------------------------------------#
@@ -270,6 +285,17 @@ nmap +HR :GhcModTypeClear<LF>
 "Unite-haddockをbrowse_remoteをデフォにして起動
 nmap +HHR :Unite -default-action=browse_remote haddock<LF>
 nmap +HHL :Unite haddock<LF>
+
+"----------------------------------------"
+"             Markdown用設定             "
+"----------------------------------------"
+
+autocmd BufRead,BufNewFile *.mkd set filetype=markdown
+autocmd BufRead,BufNewFile *.md set filetype=markdown
+
+nnoremap <silent> +MDP :PrevimOpen<LF>
+
+let g:vim_markdown_folding_disabled = 1
 
 
 "----------------------------------------"
