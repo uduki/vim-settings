@@ -44,8 +44,11 @@ NeoBundle 'ujihisa/neco-ghc.git'
 NeoBundle 'uduki/commentout.vim'
 NeoBundle 'uduki/vim-snippets'
 
+NeoBundle 'Yggdroot/indentLine'
+NeoBundle 'terryma/vim-multiple-cursors'
+
 " for markdown
-NeoBundle 'plasticboy/vim-markdown'
+"NeoBundle 'plasticboy/vim-markdown' "インデントがおかしくなるので一時的に除外
 NeoBundle 'kannokanno/previm'
 NeoBundle 'tyru/open-browser.vim'
 
@@ -208,6 +211,27 @@ autocmd BufWritePre * call RemoveTrailingWhiteSpace()
 
 
 "#----------------------------------------#
+"#             indentLine設定             #
+"#----------------------------------------#
+let g:indentLine_color_term = 0
+let g:indentLine_color_gui = '#073642'
+let g:indentLine_char = '¦'
+
+
+"#----------------------------------------#
+"#            Multi Cursor設定            #
+"#----------------------------------------#
+let g:multi_cursor_exit_from_insert_mode = 0
+let g:multi_cursor_exit_from_visual_mode = 0
+
+
+"#----------------------------------------#
+"#            Multi Cursor設定            #
+"#----------------------------------------#
+let g:openbrowser_browser_commands = [ { "name": "google-chrome-beta", "args": [ "{browser}", "{uri}" ] } ]
+
+
+"#----------------------------------------#
 "#           neocomplcache設定            #
 "#----------------------------------------#
 "起動時に有効
@@ -295,7 +319,7 @@ autocmd BufRead,BufNewFile *.md set filetype=markdown
 
 nnoremap <silent> +MDP :PrevimOpen<LF>
 
-let g:vim_markdown_folding_disabled = 1
+"let g:vim_markdown_folding_disabled = 1
 
 
 "----------------------------------------"
