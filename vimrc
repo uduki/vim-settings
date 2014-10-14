@@ -39,13 +39,16 @@ NeoBundle 'Shougo/neocomplcache'
 NeoBundle 'Shougo/neosnippet.vim'
 NeoBundle 'Shougo/neosnippet-snippets'
 NeoBundle 'thinca/vim-ref'
-NeoBundle 'eagletmt/ghcmod-vim'
-NeoBundle 'ujihisa/neco-ghc.git'
 NeoBundle 'uduki/commentout.vim'
 NeoBundle 'uduki/vim-snippets'
-
 NeoBundle 'Yggdroot/indentLine'
 NeoBundle 'terryma/vim-multiple-cursors'
+
+" for haskell
+NeoBundle 'eagletmt/ghcmod-vim'
+NeoBundle 'ujihisa/neco-ghc.git'
+NeoBundle 'pbrisbin/vim-syntax-shakespeare'
+NeoBundle 'nbouscal/vim-stylish-haskell'
 
 " for markdown
 "NeoBundle 'plasticboy/vim-markdown' "インデントがおかしくなるので一時的に除外
