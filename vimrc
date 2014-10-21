@@ -299,6 +299,7 @@ endif
 "#----------------------------------------#
 
 let g:necoghc_enable_detailed_browse = 1
+let g:ghcmod_hlint_options = [ '--language=QuasiQuotes' ]
 
 "保存時に自動でチェック
 autocmd BufWritePost *.hs GhcModCheckAndLintAsync
