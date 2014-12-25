@@ -232,7 +232,7 @@ let g:multi_cursor_exit_from_visual_mode = 0
 "#----------------------------------------#
 "#            Multi Cursor設定            #
 "#----------------------------------------#
-let g:openbrowser_browser_commands = [ { "name": "google-chrome-beta", "args": [ "{browser}", "{uri}" ] } ]
+let g:openbrowser_browser_commands = [ { "name": "firefox", "args": [ "{browser}", "{uri}" ] } ]
 
 
 "#----------------------------------------#
